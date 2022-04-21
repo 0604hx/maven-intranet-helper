@@ -1,0 +1,22 @@
+{
+  "name": "maven-intranet-helper",
+  "version": "1.0.0",
+  "description": "MAVEN 内网助手",
+  "main": "index.js",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0604hx/maven-intranet-helper.git"
+  },
+  "keywords": [
+    "maven",
+    "intranet"
+  ],
+  "author": "0604hx/集成显卡",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/0604hx/maven-intranet-helper/issues"
+  },
+  "homepage": "https://github.com/0604hx/maven-intranet-helper#readme"
+}
