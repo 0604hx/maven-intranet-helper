@@ -19,10 +19,9 @@
             <div>
                 <label for="repository" class="block text-sm font-medium text-gray-700">MAVEN 仓库目录/私服地址及账密</label>
                 <div class="flex space-x-3">
-                    <input id="repository" onclick="pickRepo()" class="flex-grow bg-gray-200 p-1" placeholder="请选择 maven 仓库目录" />
+                    <input id="repository" onclick="pickRepo()" class="flex-grow bg-gray-200 p-1" placeholder="请选择或输入 maven 仓库目录" />
                     <input id="nexus" class="flex-grow bg-gray-200 p-1" placeholder="MAVEN私服地址" />
                     <input id="auth" class="flex-grow bg-gray-200 p-1" placeholder="私服账密" />
-                    <!-- <button class="flex-none px-2 border shadow-sm text-white bg-yellow-400" onclick="pickRepo()">选择目录</button> -->
                 </div>
 
                 <div class="flex space-x-3 pt-3 text-3xl">
@@ -40,17 +39,17 @@
                 </div>
 
                 <div class="border-t border-gray-300">
-                    <h5 class="py-1">说明</h5>
-                    <p class="text-sm text-gray-500">① 入池统计：统计内网已入库的 JAR 包（追加到到 maven.txt）</p>
-                    <p class="text-sm text-gray-500">② 增量拷贝：将仓库目录中的文件与 maven.txt 比对，拷贝新增 JAR/POM 到 repository 目录</p>
-                    <p class="text-sm text-gray-500">③ 上传私服：将仓库目录下的文件提交到内网私服</p>
-                </div>
-
-                <div class="mt-5 text-blue-500 text-lg">
-                    ℹ️ 关于
-                </div>
-                <div class="border-t mt-1 border-gray-200 p-3">
-                    图片
+                    <h4 class="py-1 text-lg">ℹ️ 说明</h4>
+                    <div>
+                        <p class="text-sm text-gray-500">① 入池统计：统计内网已入库的 JAR 包（追加到到 maven.txt）</p>
+                        <p class="text-sm text-gray-500">② 增量拷贝：将仓库目录中的文件与 maven.txt 比对，拷贝新增 JAR/POM 到 repository 目录</p>
+                        <p class="text-sm text-gray-500">③ 上传私服：将仓库目录下的文件提交到内网私服</p>
+                    </div>
+                    <div class="mt-3 text-blue-600 text-sm flex space-x-2">
+                        <a href="https://github.com/0604hx/maven-intranet-helper" target="_blank">GitHub源码仓库</a>
+                        <a href="https://maven.apache.org/" target="_blank">MAVEN官网</a>
+                        <a href="https://www.sonatype.com/products/repository-oss" target="_blank">NEXUS-OSS</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -115,54 +114,4 @@
         _checkAndStart("upload", {host, auth})
     }
 </script>
-
-<!-- <script>
-    const M = require("./maven.js")
-    const outTxt = __dirname+"/maven.txt"
-
-    let working = false
-    let repoDir = ""
-
-    let changeWorking = v=>{
-        working = v
-        Q("#loading").style.display = v===true?"":"none"
-    }
-
-    let _checkAndStart = worker=>{
-        if(working) return alert("请等待当前作业完成")
-        repoDir = QV("#repository")
-        if(!repoDir)    return alert("请先选择仓库目录")
-
-        changeWorking(true)
-        worker()        //new Worker("./webworker.js")
-    }
-
-    let pickRepo = (id='repository')=>{
-        API("select-directory").then(f=>QV(`#${id}`, f))
-    }
-
-    let logger = (msg, count)=>{
-        if(count === true)  changeWorking(false)
-        requestAnimationFrame(()=>Q("#console").innerText=`${count != true?("("+count+")"):""}${msg}`)
-    }
-
-    let tongji = ()=>_checkAndStart(()=> M.fillUp(repoDir, outTxt, false, logger))
-
-    let bidui = ()=>_checkAndStart(()=> M.increment(repoDir, outTxt, __dirname+"/repository", logger))
-
-    let upload = ()=>_checkAndStart(()=>{
-        let url = QV("#nexus")
-        let auth = QV("#auth")
-
-        let errorMsg = ""
-        if(!url || url.indexOf("http"))     errorMsg = "私服地址不能为空且必须以 http 开头"
-        else if(!auth)                      errorMsg = "私服账密不能为空"
-        if(errorMsg){
-            changeWorking(false)
-            return alert(errorMsg)
-        }
-
-        M.upload(repoDir, url, auth, logger)
-    })
-</script> -->
 </html>

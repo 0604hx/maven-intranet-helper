@@ -25,9 +25,11 @@
 
 </div>
 
-- ✅ 统计已入库的 JAR 包（将仓库下文件按行写入 maven.txt）
-- ✅ 比对指定目录（通常时外网机器），找到未入库（不在 maven.txt 内）的文件（增量）并复制到 `repository`
-- ✅ 将指定目录下的文件提交到内网 `nexus` 私服
+✅ 统计已入库的 JAR 包（将仓库下文件按行写入 maven.txt）
+
+✅ 比对指定目录（通常时外网机器），找到未入库（不在 maven.txt 内）的文件（增量）并复制到 `repository`
+
+✅ 将指定目录下的文件提交到内网 `nexus` 私服
 
 <div align=center>
 
@@ -39,4 +41,21 @@
 
 执行 `node index.js -H` 查看说明
 
+**涉及文件**
+
+文件名|说明
+-|-
+index.js|入口程序
+maven.js|功能实现
+
 ### GUI 方式（基于 Electron）
+
+**涉及文件**
+
+文件名|说明
+-|-
+index.html|入口页面（引用 [tailwindcss](https://github.com/tailwindlabs/tailwindcss)）
+webworker.js|WebWorker 封装（便于浏览器页面丝滑更新）
+maven.js|功能实现
+
+![index.html](assets/index.png)
