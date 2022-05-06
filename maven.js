@@ -102,58 +102,85 @@ module.exports = {
 
     /**
      * 将 dir 下的文件提交到内网私服
+     * 本方法使用同步方式提交文件（异步时可能出现服务器处理不过来的问题 🤣）
+     * 
+     * NEXUS 支持重复上传
+     * 
      * @param {*} dir
      * @param {*} host      仓库地址，示例 http://ip:port/repository/my_repo/
      * @param {*} auth      授权信息，格式为 username:password
      * @param {*} logger
+     * @returns             返回上传出错的文件信息
      */
-    upload (dir, host, auth, logger=()=>{}){
+     async upload (dir, host, auth, logger=()=>{}){
         let count = 0
         let done  = 0
-        let fileCount = 0
+        let files = []
+        let failList = []
 
-        let onFile = async f=>{
-            fileCount ++
-            let fileData = await readFileSync(f, {flag:'r'})
-
-            let started = Date.now()
-            let fName = f.substring(dir.length+1)
-            let req = request(
-                `${host}/${fName}`,
-                { method:"PUT", auth },
-                res=>{
-                    let { statusCode, statusMessage } = res
-
-                    if(statusCode == 201){
-                        let used = Date.now() - started
-                        logger(`用时 ${used/1000}秒 | ${statusCode} | ${fName}`, ++count)
-                        done ++
-                    }
-                    else
-                        logger(`上传出错 | ${statusCode} ${statusMessage} | ${fName}`, ++count)
-
-                    fileCount --
+        let walkDir = (_dir)=>{
+            let _files = readdirSync(_dir)
+            _files.forEach(f=>{
+                let file = resolve(_dir, f)
+                if(statSync(file).isFile()){
+                    if(excludes.some(v=>v.test(f))) return
+                    files.push(file)
                 }
-            )
-            req.on('error', e=>{
-                logger(`网络请求出错: ${e} | ${fName}`, ++count)
-                fileCount --
+                else
+                    walkDir(file)
             })
-            req.setTimeout(120*1000)
-            req.write(fileData)
-            req.end()
+        }
+        walkDir(dir)
+        logger(`读取目录完成，共检测到${files.length}个文件...`, "SCAN")
+
+        for (let i = 0; i < files.length; i++) {
+            const f = files[i]
+            let fileData = readFileSync(f, {flag:'r'})
+            await new Promise((ok, fail)=>{
+                let started = Date.now()
+                let fName = f.substring(dir.length+1)
+                let url = `${host}/${fName}`
+                let req = request(
+                    url,
+                    { method:"PUT", auth },
+                    res=>{
+                        let { statusCode, statusMessage } = res
+
+                        if(statusCode == 201){
+                            let used = Date.now() - started
+                            logger(`用时 ${(used/1000).toFixed(3)}秒 | ${statusCode} | ${fName}`, ++count)
+                            done ++
+                        }
+                        else{
+                            logger(`上传出错 | ${statusCode} ${statusMessage} | ${fName}`, ++count)
+                            failList.push({file: f, code: statusCode, msg: statusMessage, url})
+                        }
+
+                        ok(statusCode == 201)
+                    }
+                )
+                req.on('error', e=>{
+                    logger(`网络请求出错: ${e} | ${fName}`, ++count)
+                    failList.push({file: f, code: -1, msg: e.message, url})
+                    fail(e)
+                })
+                req.setTimeout(120*1000)
+                req.write(fileData)
+                req.end()
+            })
         }
 
-        new Promise(onEnd=>{
-            let timer = setInterval(()=>{
-                if(fileCount <= 0){
-                    setTimeout(onEnd, DURATION)
-                    clearInterval(timer)
-                }
-            }, DURATION)
-
-            walk(dir, onFile)
+        logger(`处理完成，共上传${count}个文件，成功 ${done} 个，失败 ${count-done} 个`, true)
+        console.group("\n错误信息如下：")
+        failList.forEach(d=>{
+            console.groupCollapsed(d.file)
+            console.error(`提交地址：${d.url}`)
+            console.error(`错误代码：${d.code}`)
+            console.error(`错误信息：${d.msg}`)
+            console.groupEnd()
         })
-        .then(()=> logger(`处理完成，共上传${count}个文件，成功 ${done} 个，失败 ${count-done} 个`, true))
+        console.groupEnd()
+
+        return failList
     }
 }
